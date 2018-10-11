@@ -1,9 +1,10 @@
-//Carrega a biblioteca Wire
+//Carrega as bibliotecas
+#include <SoftwareSerial.h>
 #include<Wire.h>
-//Carrega a biblioteca LiquidCrystal
-#include <LiquidCrystal.h>
+//#include <LiquidCrystal.h>
+
 //Define os pinos que serÃ£o utilizados para ligaÃ§Ã£o ao display
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+//LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 
 //Variaveis Globais
@@ -15,8 +16,9 @@ int AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ;
 
 void setup() {
   Serial.begin(9600);  
+  
   //Define o nÃºmero de colunas e linhas do LCD
-  lcd.begin(16, 2);
+  //lcd.begin(16, 2);
   Wire.begin();
   Wire.beginTransmission(MPU);
   Wire.write(0x6B); 
@@ -29,11 +31,11 @@ void setup() {
 }
 
 void loop() {
-  Wire.beginTransmission(MPU);
-  Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
-  Wire.endTransmission(false);
+  //Wire.beginTransmission(MPU);
+  //Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
+  //Wire.endTransmission(false);
   //Solicita os dados do sensor
-  Wire.requestFrom(MPU,14,true);  
+  //Wire.requestFrom(MPU,14,true);  
   //Armazena o valor dos sensores nas variaveis correspondentes
   AcX=Wire.read()<<8|Wire.read();  //0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)     
   AcY=Wire.read()<<8|Wire.read();  //0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
@@ -44,8 +46,20 @@ void loop() {
   GyZ=Wire.read()<<8|Wire.read();  //0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
 
 
+  Serial.print("X: ");
+  Serial.print(AcX);
+  Serial.print("Y: ");
+  Serial.print(AcY);
+  Serial.print("Z: ");
+  Serial.print(AcZ);
   
-  //Limpa a tela
+  
+
+  delay(5000);
+}
+
+void drawLCD(){
+  /*//Limpa a tela
   lcd.clear();
   //Valor de X na tela
   lcd.setCursor(0,0);
@@ -62,11 +76,9 @@ void loop() {
   lcd.print("Z=");
   lcd.print(AcZ);
 
-//Valor de X na tela
+  //Valor de X na tela
   lcd.setCursor(6,1);
   lcd.print("X=");
-  lcd.print(GyX);
-
-  delay(1000);
+  lcd.print(GyX);*/
 }
 
