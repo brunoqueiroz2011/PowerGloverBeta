@@ -1,22 +1,20 @@
+
 #include <SoftwareSerial.h>
 
 SoftwareSerial bluetooth(0,1); // RX, TX
 
-
+int cont;
 void setup() {  
-  delay(500);
-  Serial.begin(9600);
+  cont = 0;
+  Serial.begin(115200);
   Serial.println("Conectando...");
-  bluetooth.begin(9600);
+  bluetooth.begin(115200);
 }
 
 void loop() {
-
-  // Talvez quando não esteja usando os pinos RX e TX do arduino.    
-  //bluetooth.write('A'); 
-
+  cont += 1;
   Serial.print("Chegou...");
-  Serial.println("");
-  
+  Serial.println(cont);  
+
   delay(500);
 }

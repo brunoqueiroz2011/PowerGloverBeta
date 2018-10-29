@@ -1,17 +1,15 @@
 //Autor: Bruno Queiroz
 //Descrição: Programa que obtem os valores dos eixos do acelerometro e envia via Bluetooth.
 
-//Bibliotecas do Bluetooth
-#include <SoftwareSerial.h>
-
 //Bibliotecas do Acelerometro
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"
+//#include "MPU6050.h" 
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
     #include "Wire.h"
 #endif
 
-MPU6050 mpu6050;
+MPU6050 mpu;
 
 #define OUTPUT_READABLE_YAWPITCHROLL
 
@@ -50,15 +48,17 @@ void dmpDataReady() {
     mpuInterrupt = true;
 }
 
+//Bibliotecas do Bluetooth
+#include <SoftwareSerial.h>
 
 //Variavel Bluetooth e os pinos utilizados pelo mesmo.
-SoftwareSerial bluetooth(0,1); // RX, TX
+SoftwareSerial bluetooth(8,9); // RX, TX
 
-void setup() {
+void setup() {  
   Serial.begin(9600);               //Inicializando a Comunicação Serial
   Serial.println("Conectando...");
   // Configuração do Bluetooth    
-  bluetooth.begin(9600);            //Configurando a velocidade da porta serial do Bluetooth
+  bluetooth.begin(115200);            //Configurando a velocidade da porta serial do Bluetooth
 
   // Configuração do Acelerometro
   // Junte-se ao barramento I2C (a biblioteca I2Cdev não faz isso automaticamente)
@@ -72,18 +72,18 @@ void setup() {
   while (!Serial);
 
   // initialize device
-  Serial.println(F("Iniciazando o dispositivos I2C..."));
+  //Serial.println(F("Iniciazando o dispositivos I2C..."));
   mpu.initialize();
   pinMode(INTERRUPT_PIN, INPUT);
 
   // Verificando as Conexões
-  Serial.println(F("Testando a conexão dos dispositivos..."));
-  Serial.println(mpu.testConnection() ? F("MPU6050 conexão bem sucedida") : F("MPU6050 falha na conexão"));
+  //Serial.println(F("Testando a conexão dos dispositivos..."));
+  //Serial.println(mpu.testConnection() ? F("MPU6050 conexão bem sucedida") : F("MPU6050 falha na conexão"));
 
   delay(1000);
 
   // Aguarda e configura o DMP
-  Serial.println(F("Iniciazando o DMP..."));
+  //Serial.println(F("Iniciazando o DMP..."));
   devStatus = mpu.dmpInitialize();
 
   // Ajustando a sensibilidade do giroscópio.
@@ -95,16 +95,16 @@ void setup() {
   // verifique se funcionou (retorna 0 em caso afirmativo)
   if (devStatus == 0) {
       // ligue o DMP, agora que está pronto
-      Serial.println(F("Habilidando o DMP..."));
+      //Serial.println(F("Habilidando o DMP..."));
       mpu.setDMPEnabled(true);
 
       // Ativar a detecção de interrupção do Arduino
-      Serial.println(F("Ativando a detecção de interrupção (interrupção externa do Arduino 0)..."));
+      //Serial.println(F("Ativando a detecção de interrupção (interrupção externa do Arduino 0)..."));
       attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), dmpDataReady, RISING);
       mpuIntStatus = mpu.getIntStatus();
 
       // Setar nosso flag DMP Ready para que a função main loop () saiba que não há problemas em usá-lo
-      Serial.println(F("DMP pronto! Esperando pela primeira interrupção..."));
+      //Serial.println(F("DMP pronto! Esperando pela primeira interrupção..."));
       dmpReady = true;
 
       // Obtenha o tamanho do pacote DMP esperado para comparação posterior
@@ -114,9 +114,9 @@ void setup() {
       // 1 = carga inicial da memória falhou
       // 2 = Falha na atualização da configuração do DMP
       // (se vai quebrar, geralmente o código será 1)
-      Serial.print(F("Inicialização do DMP falhou (código "));
-      Serial.print(devStatus);
-      Serial.println(F(")"));
+      //Serial.print(F("Inicialização do DMP falhou (código "));
+      //Serial.print(devStatus);
+      //Serial.println(F(")"));
   }
   
 }
@@ -136,7 +136,7 @@ void loop() {
   if ((mpuIntStatus & 0x10) || fifoCount == 1024) {
       // redefinir para que possamos continuar
       mpu.resetFIFO();
-      Serial.println(F("FIFO overflow!"));
+      //Serial.println(F("FIFO overflow!"));
 
   // Caso contrário, verifique se há interrupção de dados pronta do DMP (isso deve acontecer com frequência)
   } else if (mpuIntStatus & 0x02) {
@@ -146,8 +146,8 @@ void loop() {
       // leia um pacote da FIFO
       mpu.getFIFOBytes(fifoBuffer, packetSize);
       
-      // rastreia a contagem FIFO aqui, caso haja -> 1 pacote disponível
-      // (isso nos permite ler imediatamente mais sem esperar por uma interrupção)
+      //rastreia a contagem FIFO aqui, caso haja -> 1 pacote disponível (isso nos permite ler imediatamente mais sem esperar por uma interrupção)
+
       fifoCount -= packetSize;
 
       #ifdef OUTPUT_READABLE_YAWPITCHROLL
@@ -155,14 +155,12 @@ void loop() {
         mpu.dmpGetQuaternion(&q, fifoBuffer);
         mpu.dmpGetGravity(&gravity, &q);
         mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-        Serial.print("ypr\t");
-        Serial.print(ypr[0] * 180/M_PI);
-        Serial.print("\t");
-        Serial.print(ypr[1] * 180/M_PI);
-        Serial.print("\t");
-        Serial.println(ypr[2] * 180/M_PI);
-        Serial.print("\t");
-        Serial.println(ypr[3] * 180/M_PI);
+        //Serial.print("ypr\t");
+        //Serial.print(ypr[0] * 180/M_PI);
+        //Serial.print("\t");
+        //Serial.print(ypr[1] * 180/M_PI);
+        //Serial.print("\t");
+        //Serial.println(ypr[2] * 180/M_PI);
 
         angleX = map((ypr[1] * 180/M_PI), -70, 70, 80, 120);
         //servoX.write(angleX+adjustX, 50, false);
@@ -171,11 +169,18 @@ void loop() {
         //servoY.write(angleY+adjustY, 50, false);   
 
         angleZ = map((ypr[3] * 180/M_PI), -70, 70, 120, 80);
-        //servoY.write(angleZ+adjustZ, 50, false);   
-        
-      Serial.write("X: "+angleX+"| Y: "+angleY); //Envia via Bluetooth para o modulo Slave pareado.
- 
+        //servoY.write(angleY+adjustY, 50, false);          
+    
       #endif         
+      
   }
-  delay(500);
+
+  Serial.print("X:");
+  Serial.print(angleX);
+  Serial.print("|Y:");
+  Serial.print(angleY);
+  Serial.print("|Z:");
+  Serial.println(angleZ);       
+
+  delay(150);
 }
