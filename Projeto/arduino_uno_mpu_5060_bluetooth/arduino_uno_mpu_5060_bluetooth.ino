@@ -1,6 +1,7 @@
 //Autor: Bruno Queiroz
 //Descrição: Programa que obtem os valores dos eixos do acelerometro e envia via Bluetooth.
 
+#include <SoftwareSerial.h>
 //Bibliotecas do Acelerometro
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"
@@ -32,10 +33,6 @@ VectorFloat gravity;    // [x, y, z]            Vetor de Gravidade
 float euler[3];         // [psi, theta, phi]    Euler angle container
 float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container e vetor de gravidade
 
-int8_t adjustX = -7;
-int8_t adjustY = -20;
-int8_t adjustZ = -10;
-
 int8_t angleX;
 int8_t angleY;
 int8_t angleZ;
@@ -49,8 +46,6 @@ void dmpDataReady() {
 }
 
 //Bibliotecas do Bluetooth
-#include <SoftwareSerial.h>
-
 //Variavel Bluetooth e os pinos utilizados pelo mesmo.
 SoftwareSerial bluetooth(8,9); // RX, TX
 
@@ -58,7 +53,7 @@ void setup() {
   Serial.begin(9600);               //Inicializando a Comunicação Serial
   Serial.println("Conectando...");
   // Configuração do Bluetooth    
-  bluetooth.begin(115200);            //Configurando a velocidade da porta serial do Bluetooth
+  bluetooth.begin(9600);            //Configurando a velocidade da porta serial do Bluetooth
 
   // Configuração do Acelerometro
   // Junte-se ao barramento I2C (a biblioteca I2Cdev não faz isso automaticamente)
@@ -154,32 +149,23 @@ void loop() {
         // exibir ângulos de Euler em graus
         mpu.dmpGetQuaternion(&q, fifoBuffer);
         mpu.dmpGetGravity(&gravity, &q);
-        mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-        //Serial.print("ypr\t");
-        //Serial.print(ypr[0] * 180/M_PI);
-        //Serial.print("\t");
-        //Serial.print(ypr[1] * 180/M_PI);
-        //Serial.print("\t");
-        //Serial.println(ypr[2] * 180/M_PI);
+        mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);        
 
-        angleX = map((ypr[1] * 180/M_PI), -70, 70, 80, 120);
-        //servoX.write(angleX+adjustX, 50, false);
+        angleX = int(ypr[2]*180/M_PI)+90;
         
-        angleY = map((ypr[2] * 180/M_PI), -70, 70, 120, 80);
-        //servoY.write(angleY+adjustY, 50, false);   
+        angleY = int(ypr[1]*180/M_PI)+90;
 
-        angleZ = map((ypr[3] * 180/M_PI), -70, 70, 120, 80);
-        //servoY.write(angleY+adjustY, 50, false);          
+        angleZ = int(ypr[0]*180/M_PI)+90;       
     
       #endif         
       
   }
 
-  Serial.print("X:");
+  //Serial.print("X:");
   Serial.print(angleX);
-  Serial.print("|Y:");
+  //Serial.print("|Y:");
   Serial.print(angleY);
-  Serial.print("|Z:");
+  //Serial.print("|Z:");
   Serial.println(angleZ);       
 
   delay(150);
