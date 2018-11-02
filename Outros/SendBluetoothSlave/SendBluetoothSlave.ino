@@ -5,7 +5,8 @@ Servo motor;
 #define SERVO 6 //Pinos para o controle do Servo Motor
 
 SoftwareSerial bluetooth(0,1); // RX, TX
-char command[20];
+//char command[20];
+String command;
 int indexStr;
 
 String posX,posY,posZ;
@@ -20,7 +21,7 @@ void setup() {
   bluetooth.begin(9600);
 
   motor.attach(SERVO);//Inicia o pino do Servo Motor
-  motor.writeMicroseconds(servoPos); 
+  //motor.writeMicroseconds(servoPos); 
 
   indexStr = 0;
 }
@@ -30,10 +31,11 @@ void loop() {
   
   if (bluetooth.available()){
     while(bluetooth.available()){
-      command[indexStr] += (char)bluetooth.read();    
+      //command[indexStr] += (char)bluetooth.read();    
+      command += (char)bluetooth.read();    
       indexStr++;
     } 
-    Serial.println(bluetooth.read());        
+    Serial.println(command);        
   //01 234 567 891 234 567
   //X: 000 |Y: 000 |Z: 000
     
@@ -55,5 +57,5 @@ void loop() {
     //motor.write(intposX);           
   }    
    indexStr = 0;
-  delay(150);
+  delay(2000);
 }

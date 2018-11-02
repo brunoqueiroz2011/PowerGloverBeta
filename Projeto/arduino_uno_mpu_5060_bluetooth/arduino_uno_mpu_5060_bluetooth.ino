@@ -161,11 +161,11 @@ void loop() {
       
   }
 
-  //Serial.print("X:");
+  Serial.print("X:");
   Serial.print(angleX);
-  //Serial.print("|Y:");
+  Serial.print("|Y:");
   Serial.print(angleY);
-  //Serial.print("|Z:");
+  Serial.print("|Z:");
   Serial.println(angleZ);       
 
   delay(150);
