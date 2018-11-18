@@ -13,6 +13,8 @@
 MPU6050 mpu;
 
 #define OUTPUT_READABLE_YAWPITCHROLL
+#define OUTPUT_READABLE_REALACCEL
+#define OUTPUT_READABLE_WORLDACCEL
 
 #define INTERRUPT_PIN 2
 
@@ -37,6 +39,11 @@ int8_t angleX;
 int8_t angleY;
 int8_t angleZ;
 
+const int btnFechar = 6;
+const int btnAbrir = 7;
+int statusbtnFechar = 0;
+int statusbtnAbrir = 0;
+
 // ================================================================
 // ===           ROTINA DE DETECÇÃO DE INTERRUPÇÕES             ===
 // ================================================================
@@ -49,11 +56,18 @@ void dmpDataReady() {
 //Variavel Bluetooth e os pinos utilizados pelo mesmo.
 SoftwareSerial bluetooth(8,9); // RX, TX
 
+String command, strReplace;
+
+const int buttonPin = 2;
+int buttonState = 0;
+
 void setup() {  
   Serial.begin(9600);               //Inicializando a Comunicação Serial
   Serial.println("Conectando...");
   // Configuração do Bluetooth    
   bluetooth.begin(9600);            //Configurando a velocidade da porta serial do Bluetooth
+
+  pinMode(buttonPin, OUTPUT);//Definindo pino digital 6 como de entrada.  
 
   // Configuração do Acelerometro
   // Junte-se ao barramento I2C (a biblioteca I2Cdev não faz isso automaticamente)
@@ -127,6 +141,8 @@ void loop() {
   // obter contagem atual de FIFO
   fifoCount = mpu.getFIFOCount();
 
+  buttonState = digitalRead(buttonPin);  
+
   // Verifique se há estouro
   if ((mpuIntStatus & 0x10) || fifoCount == 1024) {
       // redefinir para que possamos continuar
@@ -150,23 +166,31 @@ void loop() {
         mpu.dmpGetQuaternion(&q, fifoBuffer);
         mpu.dmpGetGravity(&gravity, &q);
         mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);        
-
+        
         angleX = int(ypr[2]*180/M_PI)+90;
         
-        angleY = int(ypr[1]*180/M_PI)+90;
+        angleY = int(ypr[1]*-180/M_PI)+90;
 
-        angleZ = int(ypr[0]*180/M_PI)+90;       
-    
-      #endif         
-      
+        angleZ = int(ypr[0]*180/M_PI)+90;               
+
+        if(buttonState == HIGH){
+          command = "F";
+        }else{
+          command = "A";
+        }        
+        
+        //Serial.print(',');
+        Serial.print(angleX);
+        Serial.print(',');
+        Serial.print(angleY);
+        Serial.print(',');
+        Serial.print(abs(angleZ++));
+        Serial.print(',');
+        Serial.print(command);
+        Serial.println(',');
+        
+      #endif      
   }
-
-  Serial.print("X:");
-  Serial.print(angleX);
-  Serial.print("|Y:");
-  Serial.print(angleY);
-  Serial.print("|Z:");
-  Serial.println(angleZ);       
-
+  
   delay(150);
 }
